@@ -5,27 +5,31 @@ let urlCheckTimeout;
 // warframe.market/profile/username
 const urlPattern = /\/profile\/[^/]+$/;
 
+const updateAllOrdersDucatInfo = () => {
+    document.querySelectorAll('.order-unit--GERZ4').forEach(updateOrderDucatInfo);
+}
+
 const checkUrlChange = () => {
     if (window.location.href !== currentUrl) {
         currentUrl = window.location.href;
         console.log("URL changed to:", currentUrl);
 
         if (urlPattern.test(currentUrl)) {
-            window.location.reload();
+            updateAllOrdersDucatInfo();
         }
     }
 };
 
-const addExtraInfo = (order) => {
+const updateOrderDucatInfo = (order) => {
     // todo: do not rely on random class names
     const nameContainer = order.querySelector('.order-unit__item-name--QNXKh');
-    if (!nameContainer) return;
+    if (!nameContainer || order.querySelector('.ducat-info-1337')) return;
 
     const nameSpan = nameContainer.querySelector('span');
     const ducats = additionalInfo[nameSpan.textContent];
-    if (!ducats || order.querySelector('.extra-info')) return;
 
-    const platinumContainer = order.querySelector('.price--LQgqJ.sell--UxmH0 b');
+    const platinumContainer = order.querySelector('.price--LQgqJ.sell--UxmH0');
+    if (!ducats || !platinumContainer) return;
     const platinum = parseInt(platinumContainer.textContent);
 
     let color;
@@ -35,21 +39,22 @@ const addExtraInfo = (order) => {
         color = ducats >= 45 ? '#90ee90' : '#ff6666'; // green or red
     }
 
-    const extraInfoSpan = document.createElement('span');
-    extraInfoSpan.style.color = color;
-    extraInfoSpan.textContent = `${ducats} ducats`;
+    const ducatInfoSpan = document.createElement('span');
+    ducatInfoSpan.className = 'ducat-info-1337'
+    ducatInfoSpan.style.color = color;
+    ducatInfoSpan.textContent = `${ducats} ducats`;
 
     nameContainer.appendChild(document.createTextNode(' - '));
-    nameContainer.appendChild(extraInfoSpan);
+    nameContainer.appendChild(ducatInfoSpan);
 }
 
-const observeOrdersContainer = () => {
+const observeAllOrders = () => {
     const observer = new MutationObserver((mutationsList) => {
         for (let mutation of mutationsList) {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'DIV') {
-                        addExtraInfo(node);
+                        updateOrderDucatInfo(node);
                     }
                 });
             }
@@ -67,8 +72,8 @@ setTimeout(() => {
         .then(response => response.json())
         .then(data => {
             additionalInfo = data;
-            document.querySelectorAll('.order-unit--GERZ4').forEach(addExtraInfo);
-            observeOrdersContainer();
+            updateAllOrdersDucatInfo();
+            observeAllOrders();
             window.addEventListener('popstate', checkUrlChange);
         })
         .catch(error => console.error('Error:', error));

@@ -503,7 +503,7 @@
     "Wyrm Prime Cerebrum": 15,
     "Wyrm Prime Systems": 45,
 
-    "__ARCH-GUN__": "__COMPONENTS__",
+    "__ARCHWING__": "__COMPONENTS__",
 
     "Corvas Prime Barrel": 100,
     "Corvas Prime Blueprint": 45,
@@ -512,5 +512,10 @@
     "Larkspur Prime Barrel": 100,
     "Larkspur Prime Blueprint": 15,
     "Larkspur Prime Receiver": 45,
-    "Larkspur Prime Stock": 45
+    "Larkspur Prime Stock": 45,
+
+    "Odonata Prime Blueprint": 45,
+    "Odonata Prime Harness": 15,
+    "Odonata Prime Systems": 15,
+    "Odonata Prime Wings": 65
 }

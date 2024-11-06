@@ -6,7 +6,7 @@ import aiohttp
 from typing import Dict, Any
 
 
-TAGS = ['weapon', 'component', 'prime']
+TAGS = {'weapon', 'warframe', 'component', 'prime', 'blueprint'}
 WEBSOCKET_URL = 'wss://warframe.market/socket?platform=pc'
 NTFY_URL = 'https://ntfy.sh/some-topic-name-here'
 
@@ -16,7 +16,7 @@ def is_order_valid(order: Dict[str, Any]) -> bool:
         return False
 
     item = order['item']
-    if sorted(TAGS) != sorted(item['tags']):
+    if not set(item['tags']).issubset(TAGS):
         return False
 
     ducats = item['ducats']
