@@ -20,6 +20,16 @@ const checkUrlChange = () => {
     }
 };
 
+const getDucatInfoColor = (ducats, platinum) => {
+    if ((ducats >= 45 && platinum === 1) || (ducats >= 90 && platinum <= 2)) {
+        return '#ffd700'; // gold
+    } else if (platinum === Math.floor(ducats / 25)) {
+        return '#90ee90'; // green
+    } else {
+        return '#ff6666'; // red
+    }
+};
+
 const updateOrderDucatInfo = (order) => {
     // todo: do not rely on random class names
     const nameContainer = order.querySelector('.order-unit__item-name--QNXKh');
@@ -32,16 +42,9 @@ const updateOrderDucatInfo = (order) => {
     if (!ducats || !platinumContainer) return;
     const platinum = parseInt(platinumContainer.textContent);
 
-    let color;
-    if ((ducats >= 45 && platinum === 1) || (ducats >= 90 && platinum <= 2)) {
-        color = '#ffd700'; // gold
-    } else {
-        color = ducats >= 45 ? '#90ee90' : '#ff6666'; // green or red
-    }
-
     const ducatInfoSpan = document.createElement('span');
     ducatInfoSpan.className = 'ducat-info-1337'
-    ducatInfoSpan.style.color = color;
+    ducatInfoSpan.style.color = getDucatInfoColor(ducats, platinum);
     ducatInfoSpan.textContent = `${ducats} ducats`;
 
     nameContainer.appendChild(document.createTextNode(' - '));

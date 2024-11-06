@@ -7,12 +7,15 @@ Helper scripts for [warframe.market](https://warframe.market).
 A Chrome extension that displays the ducat value of a prime component next to its name on warframe.market. 
 * How it works:
     - When you visit a user profile on warframe.market, the extension automatically displays the ducat value next to each prime component.
-    - Values are color-coded:
-        + **Red** for items with a ducat value below 45.
-        + **Green** for items with a ducat value of 45 or above.
-        + **Gold** for items that meet either of these conditions:
-            * Price is 1 platinum and 45 or more ducats.
-            * Price is 2 platinum or less and 90 or more ducats.
+    - The colors are determined according to the following rules:
+        + **Gold** for items that cost:
+            * 45 or more ducats and 1 platinum
+            * 90 or more ducats and 2 or fewer platinum
+        + **Green** for items that cost:
+            * 25 or more ducats and 1 platinum
+            * 50 or more ducats and 2 platinum
+            * 100 or more ducats and 4 platinum
+        + **Red** for items that don't meet the above conditions.
 
     ![warframe.market profile preview](img/warframe-market.png)
 
@@ -21,8 +24,8 @@ A Python script that monitors new sell orders on warframe.market and sends notif
 * How it works:
     - Connects to the warframe.market websocket and listens continuously.
     - Alerts when an item meets one of the following conditions:
-        + Price is 1 platinum and 45 or more ducats.
-        + Price is 2 platinum or less and 90 or more ducats.
+        + 45 or more ducats and 1 platinum.
+        + 90 or more ducats and 2 or fewer platinum.
     - When these conditions are met, the script:
         + Prints a message to the console.
         + Sends a notification through a pub-sub service.
