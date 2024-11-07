@@ -34,13 +34,20 @@ def get_order_format(order: Dict[str, Any]) -> str:
     return f'[{time}] {name}: {platinum} plat, {ducats} ducats, seller: {seller}'
 
 
+async def send_notification(session: aiohttp.ClientSession, data: str):
+    try:
+        await session.post(NTFY_URL, data=data)
+    except Exception as e:
+        print(f'Failed to send notification: {e}')
+
+
 async def process_message(payload: Dict[str, Any], session: aiohttp.ClientSession):
     try:
         order = payload['payload']['order']
         if is_order_valid(order):
             data = get_order_format(order)
             print(data)
-            await session.post(NTFY_URL, data=data)
+            await send_notification(session, data)
     except KeyError:
         pass
 
