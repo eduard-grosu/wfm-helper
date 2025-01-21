@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WFM Price Tracker</title>
+    <link rel="shortcut icon" href="https://warframe.market/favicon.ico" type="image/x-icon" />
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.js"></script>
+    <style>
+        .ui-autocomplete {
+            position: absolute;
+            z-index: 1000;
+            cursor: default;
+            padding: 0;
+            margin-top: 2px;
+            list-style: none;
+            background-color: #242627;
+            border: 1px solid #495057;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ui-autocomplete>li {
+            padding: 3px 20px;
+        }
+
+        .ui-autocomplete>li.ui-state-focus {
+            background-color: #495057;
+        }
+
+        .ui-helper-hidden-accessible {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200">
+    <div class="container-fluid mx-auto mt-10 px-5">
+        <h1 class="text-3xl font-bold text-center mb-10">Warframe Market | Price Tracker</h1>
+        <hr class="border-gray-700 my-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Left Column -->
+            <div>
+                <h1 class="text-2xl font-bold mb-5">ITEM PRICE TRACKER</h1>
+
+                <form action="/add-item" method="POST" class="mb-5 space-y-4">
+                    <div>
+                        <label for="item-name" class="block text-sm font-medium text-gray-300">Item Name:</label>
+                        <div class="relative">
+                            <input type="text" id="item-name" name="item-name"
+                                class="auto-complete block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-gray-800 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 text-gray-200"
+                                placeholder="Search for the item" autocomplete="off">
+                            <div id="autocomplete-results"
+                                class="absolute z-10 bg-gray-800 border border-gray-700 rounded-md shadow-lg mt-1 hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="item-price" class="block text-sm font-medium text-gray-300">Maximum Price:</label>
+                        <input type="number" id="item-price" name="item-price"
+                            class="block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm bg-gray-800 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 text-gray-200"
+                            placeholder="Set maximum price for the item">
+                    </div>
+
+                    <button type="submit"
+                        class="inline-block px-4 py-2 text-gray-200 bg-blue-600 rounded-md hover:bg-blue-700">
+                        Track Item
+                    </button>
+                </form>
+
+                <h2 class="text-xl font-semibold mb-3">TRACKED ITEMS</h2>
+                <div class="overflow-x-auto">
+                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                        <table
+                            class="table-auto w-full border-collapse border border-gray-700 text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                            <thead
+                                class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                <tr>
+                                    <th class="px-6 py-3 text-gray-300">Name</th>
+                                    <th class="px-6 py-3 text-gray-300">Platinum</th>
+                                    <th class="px-6 py-3 text-gray-300">Ducats</th>
+                                    <th class="px-6 py-3 text-gray-300">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item_id, item_data in user_items.items() %}
+                                <tr
+                                    class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-900">
+                                    {% if item_data.name == '*' %}
+                                    <td class="px-6 py-4">{{ item_data.name }}</td>
+                                    {% else %}
+                                    <td class="px-6 py-4">
+                                        <a href="https://warframe.market/items/{{ item_data.name.lower().replace(' ', '_') }}"
+                                            target="_blank" class="hover:underline">{{ item_data.name }}</a>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                            width="12" height="12" class="inline-block"
+                                            style="position: relative; top: -0.3em; margin-left: -0.1em;">
+                                            <path
+                                                d="M14 3v2h3.59L10.3 12.29l1.42 1.42L19 6.41V10h2V3h-7zM5 5v14h14v-7h-2v5H7V7h5V5H5z" />
+                                        </svg>
+                                    </td>
+                                    {% endif %}
+                                    <td class="px-6 py-4">{{ item_data.price }}</td>
+                                    <td class="px-6 py-4">{{ item_data.ducats or '*' }}</td>
+                                    {% if item_data.name == '*' %}
+                                    <td class="px-6 py-4">N/A</td>
+                                    {% else %}
+                                    <td class="px-6 py-4">
+                                        <!-- Modal toggle -->
+                                        <button data-modal-target="item-modal-{{ item_id }}"
+                                            data-modal-show="item-modal-{{ item_id }}" type="submit"
+                                            class="px-3 py-1 text-sm text-gray-200 bg-yellow-600 rounded-md hover:bg-yellow-700">
+                                            Edit
+                                        </button>
+                                        <form action="/delete-item/{{ item_id }}" method="POST" class="inline-block">
+                                            <button type="submit"
+                                                class="px-3 py-1 text-sm text-gray-200 bg-red-600 rounded-md hover:bg-red-700">
+                                                Delete
+                                            </button>
+                                        </form>
+
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% for item_id, item_data in user_items.items() %}
+                        {% if item_data.name != '*' %}
+                        <div id="item-modal-{{ item_id }}" tabindex="-1"
+                            class="fixed top-0 left-0 right-0 z-50 items-center justify-center hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                            <div class="relative w-full max-w-2xl max-h-full">
+                                <!-- Modal content -->
+                                <form class="relative bg-white rounded-lg shadow dark:bg-gray-700"
+                                    action="/edit-item/{{ item_id }}" method="POST">
+                                    <!-- Modal header -->
+                                    <div
+                                        class="flex items-start justify-between p-4 border-b rounded-t dark:border-gray-600">
+                                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                                            Edit item - {{ item_data.name }}
+                                        </h3>
+                                        <button type="button"
+                                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                            data-modal-hide="item-modal-{{ item_id }}">
+                                            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 14 14">
+                                                <path stroke="currentColor" stroke-linecap="round"
+                                                    stroke-linejoin="round" stroke-width="2"
+                                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                            </svg>
+                                            <span class="sr-only">Close modal</span>
+                                        </button>
+                                    </div>
+                                    <!-- Modal body -->
+                                    <div class="p-3">
+                                        <label for="platinum"
+                                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                            Platinum
+                                        </label>
+                                        <input type="text" name="platinum" id="platinum" required=""
+                                            class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                            placeholder="Enter maximum platinum amount">
+                                    </div>
+                                    <!-- Modal footer -->
+                                    <div
+                                        class="flex items-center p-6 space-x-3 rtl:space-x-reverse border-t border-gray-200 rounded-b dark:border-gray-600">
+                                        <button type="submit"
+                                            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Submit</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <h1 class="text-2xl font-bold mb-5">WEBSOCKET MESSAGES</h1>
+                <div id="websocket-messages"
+                    class="p-4 bg-gray-800 border border-gray-700 rounded-md shadow-sm h-96 overflow-auto text-sm font-mono space-y-2">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            var items = {{ items | safe }};
+
+            $(".auto-complete").autocomplete({
+                source: items,
+                minLength: 2
+            });
+
+            const messagesContainer = document.getElementById("websocket-messages");
+
+            // Load persisted messages from localStorage
+            function loadMessages() {
+                const storedMessages = JSON.parse(localStorage.getItem("websocketMessages")) || [];
+                storedMessages.forEach((message) => {
+                    const messageDiv = document.createElement("div");
+                    messageDiv.innerHTML = message;
+                    messagesContainer.appendChild(messageDiv);
+                });
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // Save messages to localStorage with a limit
+            function saveMessage(message) {
+                const storedMessages = JSON.parse(localStorage.getItem("websocketMessages")) || [];
+                storedMessages.push(message);
+
+                // Keep only the last 50 messages
+                if (storedMessages.length > 50) {
+                    storedMessages.shift(); // Remove the oldest message
+                }
+
+                localStorage.setItem("websocketMessages", JSON.stringify(storedMessages));
+            }
+
+            loadMessages();
+
+            const ws = new WebSocket(`ws://${location.host}/ws`);
+
+            ws.addEventListener('message', function (event) {
+                if (event.data.length > 0) {
+                    const messageDiv = document.createElement("div");
+                    messageDiv.innerHTML = event.data;
+                    messagesContainer.appendChild(messageDiv);
+                    saveMessage(event.data);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -19,16 +19,22 @@ A Chrome extension that displays the ducat value of a prime component next to it
 
     ![warframe.market profile preview](img/warframe-market.png)
 
-### `wfm-ntfy` (Python Script)  
-A Python script that monitors new sell orders on warframe.market and sends notifications based on specific price and ducat value conditions.
+### `wfm-ntfy` (Python Web Application)  
+A Python web application that monitors new sell orders on warframe.market and sends notifications based on specific price and ducat value conditions.
 * How it works:
     - Connects to the warframe.market websocket and listens continuously.
     - Alerts when an item meets one of the following conditions:
         + 45 or more ducats and 1 platinum.
         + 90 or more ducats and 2 or fewer platinum.
+        + \<your amount\> or fewer platinum.
     - When these conditions are met, the script:
         + Prints a message to the console.
         + Sends a notification through a pub-sub service.
+* Features:
+    - Auto-complete based on item name (fetched directly from the warframe.market API).
+    - WebSocket notifications are shown directly in the UI.
+    - Clickable links to the seller profile or item listings.
 
+    ![website ui](img/website-ui.png)
     ![phone notifications preview](img/phone.png)
     ![terminal preview](img/terminal.png)
