@@ -25,7 +25,7 @@ def is_order_valid(order: Dict[str, Any]) -> bool:
     specific_item = _get_item_by_name(item['en']['item_name'])
     if specific_item:
         condition = f'{platinum} {specific_item.price}'
-        if specific_item.ducats != '*':
+        if specific_item.ducats:
             condition += f' and {ducats} {specific_item.ducats}'
         conditions.append(condition)
 
