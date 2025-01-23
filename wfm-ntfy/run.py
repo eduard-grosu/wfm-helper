@@ -49,7 +49,9 @@ async def on_close():
 @app.route("/")
 async def index():
     """Render the homepage with the current list of items."""
-    return await render_template("index.html", items=json.dumps(app.wf_items), user_items=app.user_items)
+
+    user_items = dict(sorted(app.user_items.items(), key=lambda v: v[1].name))
+    return await render_template("index.html", items=json.dumps(app.wf_items), user_items=user_items)
 
 
 if __name__ == "__main__":

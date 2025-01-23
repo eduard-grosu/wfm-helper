@@ -44,7 +44,7 @@ def get_order_format(order: Dict[str, Any], *, html=False) -> str:
     if html:
         seller_profile_url = current_app.config['WF_PROFILE_URL'].format(seller)
         return (f'<span class="text-gray-400">[<code>{time}</code>]</span> '
-                f'<a href="{seller_profile_url}" class="hover:underline">'
+                f'<a href="{seller_profile_url}" target="_blank" class="hover:underline">'
                 f'<span class="text-yellow-400">{name}</span>: '
                 f'<span class="text-green-400">{platinum} platinum</span>, '
                 f'<span class="text-pink-400">{ducats} ducats</span>, '
@@ -94,3 +94,6 @@ async def background_task(broker):
         ):
             current_app.logger.warning('WF websocket disconnected, attempting reconnect...')
             await asyncio.sleep(3)
+        except Exception as e:
+            current_app.logger.error(f'WF websocket error: {e}')
+            raise
