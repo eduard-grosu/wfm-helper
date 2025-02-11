@@ -26,11 +26,7 @@ async def on_start():
     headers = {'Language': 'en', 'Accept': 'application/json'}
     async with app.session.get(app.config['WF_API_URL'], headers=headers) as request:
         response = await request.json()
-        # keep only blueprints for now until I figure out how to handle other items
-        wf_items = [
-            item['item_name'] for item in response['payload']['items']
-            if 'Blueprint' in item['item_name']
-        ]
+        wf_items = [item['item_name'] for item in response['payload']['items']]
         app.wf_items = wf_items
 
     app.user_items = {}

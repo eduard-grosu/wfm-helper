@@ -12,16 +12,19 @@ def is_order_valid(order: Dict[str, Any]) -> bool:
     if order['order_type'] != 'sell':
         return False
 
+    conditions = []
     item = order['item']
-    if not set(item['tags']).issubset(current_app.config['WF_TAGS']):
-        return False
 
-    ducats = item['ducats']
+    ducats = item.get('ducats')  # some items don't have ducats
     platinum = order['platinum']
-
-    wildcard_items = _get_item_wildcards()
-    conditions = [f'{ducats} {item.ducats} and {platinum} {item.price}' for item in wildcard_items]
     
+    if ducats:
+        wildcard_items = _get_item_wildcards()
+        for wildcard_item in wildcard_items:
+            conditions.append(
+                f'{ducats} {wildcard_item.ducats} and {platinum} {wildcard_item.price}'
+            )
+
     specific_item = _get_item_by_name(item['en']['item_name'])
     if specific_item:
         condition = f'{platinum} {specific_item.price}'
@@ -84,16 +87,17 @@ async def background_task(broker):
                 await ws.send(json.dumps(message))
 
                 while True:
-                    payload = json.loads(await ws.recv())
+                    try:
+                        payload = json.loads(await ws.recv())
+                    except websockets.ConnectionClosed:
+                        current_app.logger.warning('WF connection closed, attempting reconnect...')
+                        break
+
                     await process_message(payload, broker)
-        except (
-            TimeoutError,
-            websockets.exceptions.ConnectionClosedError,
-            websockets.exceptions.ConnectionClosedOK,
-            websockets.exceptions.InvalidStatusCode,
-        ):
+        except (TimeoutError, websockets.InvalidStatus):
             current_app.logger.warning('WF websocket disconnected, attempting reconnect...')
-            await asyncio.sleep(3)
         except Exception as e:
             current_app.logger.error(f'WF websocket error: {e}')
-            raise
+
+        # sleep for a bit before reconnecting
+        await asyncio.sleep(3)
