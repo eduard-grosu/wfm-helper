@@ -38,22 +38,24 @@ def is_order_valid(order: Dict[str, Any]) -> bool:
 
 
 # todo: rework this function
-def get_order_format(order: Dict[str, Any], *, html=False) -> str:
+def get_order_format(order: Dict[str, Any]) -> str:
     seller = order['user']['ingame_name']
     name = order['item']['en']['item_name']
     ducats = order['item']['ducats']
     platinum = order['platinum']
     time = datetime.datetime.now().strftime('%H:%M:%S')
-    if html:
-        seller_profile_url = current_app.config['WF_PROFILE_URL'].format(seller)
-        return (f'<span class="text-gray-400">[<code>{time}</code>]</span> '
-                f'<a href="{seller_profile_url}" target="_blank" class="hover:underline">'
-                f'<span class="text-yellow-400">{name}</span>: '
-                f'<span class="text-green-400">{platinum} platinum</span>, '
-                f'<span class="text-pink-400">{ducats} ducats</span>, '
-                f'seller: <span class="text-blue-400">{seller}</span></a>')
 
-    return f'[{time}] {name}: {platinum} platinum, {ducats} ducats, seller: {seller}'
+    seller_profile_url = current_app.config['WF_PROFILE_URL'].format(seller)
+    return (
+        f'[{time}] {name}: {platinum} platinum, {ducats} ducats, seller: {seller}',
+
+        f'<span class="text-gray-400">[<code>{time}</code>]</span> '
+        f'<a href="{seller_profile_url}" target="_blank" class="hover:underline">'
+        f'<span class="text-yellow-400">{name}</span>: '
+        f'<span class="text-green-400">{platinum} platinum</span>, '
+        f'<span class="text-pink-400">{ducats} ducats</span>, '
+        f'seller: <span class="text-blue-400">{seller}</span></a>'
+    )
 
 
 async def send_notification(data: str):
@@ -67,10 +69,10 @@ async def process_message(payload: Dict[str, Any], broker):
     try:
         order = payload['payload']['order']
         if is_order_valid(order):
-            data = get_order_format(order)
+            data, html = get_order_format(order)
             current_app.logger.info(data)
             await send_notification(data)
-            await broker.publish(get_order_format(order, html=True))
+            await broker.publish(html)
     except KeyError:
         pass
 
@@ -79,7 +81,8 @@ async def background_task(broker):
     while True:
         try:
             async with websockets.connect(
-                current_app.config['WF_WEBSOCKET_URL'], open_timeout=60, close_timeout=60
+                current_app.config['WF_WEBSOCKET_URL'], open_timeout=60, close_timeout=60,
+                user_agent_header=current_app.user_agent
             ) as ws:
                 current_app.logger.info('Connected to WF websocket.')
                 

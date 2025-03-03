@@ -7,6 +7,7 @@ import aiohttp
 from blueprints.items import blueprint as items_blueprint
 from blueprints.websocket import blueprint as websocket_blueprint
 from models.item import Item
+from utils.user_agent import get_random_user_agent
 
 
 logging.basicConfig(level=logging.INFO)
@@ -23,10 +24,18 @@ app.register_blueprint(websocket_blueprint)
 @app.before_serving
 async def on_start():
     app.session = aiohttp.ClientSession()
-    headers = {'Language': 'en', 'Accept': 'application/json'}
+    app.user_agent = get_random_user_agent()
+    headers = {
+        'Language': 'en',
+        'Accept': 'application/json',
+        'User-Agent': app.user_agent
+    }
     async with app.session.get(app.config['WF_API_URL'], headers=headers) as request:
         response = await request.json()
-        wf_items = [item['item_name'] for item in response['payload']['items']]
+        # get url_name of items and pass it down below in a dict
+        # then pass the dict to the frontend and use the first key as the item name
+        # and the value as the url_name
+        wf_items = [item['i18n']['en']['name'] for item in response['data']]
         app.wf_items = wf_items
 
     app.user_items = {}
