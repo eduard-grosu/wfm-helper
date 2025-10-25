@@ -1,6 +1,6 @@
 class Config:
-    QUART_DB_DATABASE_URL = "sqlite:///items.db"
-    QUART_DB_DATA_PATH = "migrations/data.py"
+    QUART_DB_DATABASE_URL = 'sqlite:///items.db'
+    QUART_DB_DATA_PATH = 'migrations/data.py'
 
     # utils/wfm.py
     WF_PROFILE_URL = 'https://warframe.market/profile/{0}'

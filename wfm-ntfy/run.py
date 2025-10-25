@@ -31,7 +31,7 @@ async def on_start():
         # get url_name of items and pass it down below in a dict
         # then pass the dict to the frontend and use the first key as the item name
         # and the value as the url_name
-        items = {item["id"]: {k: v for k, v in item.items() if k != "id"} for item in response["data"]}
+        items = {item['id']: {k: v for k, v in item.items() if k != 'id'} for item in response['data']}
         app.wf_items = items
 
     app.user_items = {}
@@ -47,7 +47,7 @@ async def on_close():
     await app.session.close()
 
 
-@app.route("/")
+@app.route('/')
 async def index():
     """Render the homepage with the current list of items."""
 
@@ -55,8 +55,8 @@ async def index():
     items = [
         v['i18n']['en']['name'] for _, v in app.wf_items.items() if set(v['tags']) <= app.config['WF_TAGS']
     ]
-    return await render_template("index.html", items=json.dumps(items), user_items=user_items)
+    return await render_template('index.html', items=json.dumps(items), user_items=user_items)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run()
