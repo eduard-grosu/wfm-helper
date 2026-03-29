@@ -212,25 +212,45 @@
             // Load persisted messages from localStorage
             function loadMessages() {
                 const storedMessages = JSON.parse(localStorage.getItem("websocketMessages")) || [];
-                storedMessages.forEach((message) => {
+
+                const today = new Date().toISOString().split("T")[0];
+                const filteredMessages = storedMessages.filter(msg => {
+                    // Skip old format messages
+                    if (!msg || typeof msg !== "object" || !msg.date) return false;
+                    return msg.date.startsWith(today)
+                });
+
+                filteredMessages.forEach((message) => {
                     const messageDiv = document.createElement("div");
-                    messageDiv.innerHTML = message;
+                    messageDiv.innerHTML = message.text;
                     messagesContainer.appendChild(messageDiv);
                 });
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
 
-            // Save messages to localStorage with a limit
+            // Save messages to localStorage
             function saveMessage(message) {
                 const storedMessages = JSON.parse(localStorage.getItem("websocketMessages")) || [];
-                storedMessages.push(message);
 
-                // Keep only the last 50 messages
-                if (storedMessages.length > 50) {
-                    storedMessages.shift(); // Remove the oldest message
+                const newMessage = {
+                    text: message,
+                    date: new Date().toISOString()
+                };
+
+                storedMessages.push(newMessage);
+
+                const today = new Date().toISOString().split("T")[0];
+                // Keep only today's messages
+                let filteredMessages = storedMessages.filter(msg => {
+                    return msg.date.startsWith(today);
+                });
+
+                // Keep only the last 30 messages
+                if (filteredMessages.length > 30) {
+                    filteredMessages = filteredMessages.slice(-30);
                 }
 
-                localStorage.setItem("websocketMessages", JSON.stringify(storedMessages));
+                localStorage.setItem("websocketMessages", JSON.stringify(filteredMessages));
             }
 
             loadMessages();

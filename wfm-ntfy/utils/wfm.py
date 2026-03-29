@@ -36,7 +36,7 @@ def is_order_valid(order: Dict[str, Any]) -> bool:
 
 
 # todo: rework this function
-def get_order_format(order: Dict[str, Any]) -> str:
+def get_order_format(order: Dict[str, Any]) -> tuple[str, str]:
     seller = order['user']['ingameName']
     item = current_app.wf_items[order['itemId']]
     name = item['i18n']['en']['name']
