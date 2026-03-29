@@ -213,6 +213,7 @@
             function loadMessages() {
                 const storedMessages = JSON.parse(localStorage.getItem("websocketMessages")) || [];
 
+                // Keep only today's messages
                 const today = new Date().toISOString().split("T")[0];
                 const filteredMessages = storedMessages.filter(msg => {
                     // Skip old format messages
@@ -240,8 +241,8 @@
                 storedMessages.push(newMessage);
 
                 const today = new Date().toISOString().split("T")[0];
-                // Keep only today's messages
                 let filteredMessages = storedMessages.filter(msg => {
+                    if (!msg || typeof msg !== "object" || !msg.date) return false;
                     return msg.date.startsWith(today);
                 });
 
