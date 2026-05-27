@@ -1,9 +1,9 @@
-from quart import Blueprint, websocket, current_app
 import asyncio
+
+from quart import Blueprint, current_app, websocket
 
 from utils.broker import Broker
 from utils.wfm import background_task
-
 
 blueprint = Blueprint('websocket', __name__)
 broker = Broker()
@@ -23,7 +23,7 @@ async def after_serving():
         pass
 
 
-@blueprint.websocket("/ws")
+@blueprint.websocket('/ws')
 async def ws() -> None:
     """Send our messages to the frontend"""
 
