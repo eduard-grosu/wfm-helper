@@ -113,8 +113,8 @@
                                         </svg>
                                     </td>
                                     {% endif %}
-                                    <td class="px-6 py-4">{{ item_data.price }}</td>
-                                    <td class="px-6 py-4">{{ item_data.ducats or '*' }}</td>
+                                    <td class="px-6 py-4">{{ item_data.price_op }} {{ item_data.price_val }}</td>
+                                    <td class="px-6 py-4">{% if item_data.ducats_op %}{{ item_data.ducats_op }} {{ item_data.ducats_val }}{% else %}*{% endif %}</td>
                                     {% if item_data.name == '*' %}
                                     <td class="px-6 py-4">N/A</td>
                                     {% else %}
@@ -171,6 +171,7 @@
                                             Platinum
                                         </label>
                                         <input type="text" name="platinum" id="platinum" required=""
+                                            value="{{ item_data.price_op or '' }}{{ item_data.price_val or '' }}"
                                             class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                             placeholder="Enter maximum platinum amount">
                                     </div>

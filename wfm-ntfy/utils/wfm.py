@@ -1,38 +1,120 @@
 import asyncio
-import websockets
-import json
 import datetime
-from typing import Dict, Any
+import json
+import operator
+from typing import Any, Dict
 
+import websockets
 from quart import current_app
-from models.item import _get_item_wildcards, _get_item_by_name
+
+from models.item import _get_item_by_name, _get_item_wildcards
+
+OPERATORS = {
+    '<=': operator.le,
+    '>=': operator.ge,
+    '==': operator.eq,
+    '<': operator.lt,
+    '>': operator.gt,
+}
+
+
+def evaluate_condition(val: int | None, op: str | None, target_val: int | None) -> bool:
+    if val is None or op is None or target_val is None:
+        return False
+
+    func = OPERATORS.get(op)
+    if not func:
+        return False
+
+    return func(val, target_val)
+
+
+def _matches_wildcard_rule(rule, ducats: int, platinum: int) -> bool:
+    """Basic rule match
+    Both ducats and platinum constraints must pass.
+
+    Example rule:
+        ducats >= 45
+        platinum <= 1
+    """
+    return (
+        evaluate_condition(ducats, rule.ducats_op, rule.ducats_val)
+        and evaluate_condition(platinum, rule.price_op, rule.price_val),
+    )
+
+
+def _is_probable_user_error(rule, ducats: int, platinum: int) -> bool:
+    """Detects likely mispriced or mistyped listings
+
+    Idea:
+    - Extremely high ducats for the same low platinum price
+    - Usually indicates incorrect listing input
+
+    Example:
+        rule: >=45 ducats @ 1p
+        listing: 100 ducats @ 1p  -> likely mistake
+    """
+
+    suspicious_threshold = min(2 * rule.ducats_val, 100)  # safety cap
+    return ducats >= suspicious_threshold and platinum == rule.price_val
+
+
+def _is_shadowed_by_lower_tier(rule, ducats: int, platinum: int) -> bool:
+    """Handles overlapping wildcard tiers
+
+    Wildcard rules are intentionally broad, e.g.:
+
+        Tier A: >=45 ducats @ ==1p
+        Tier B: >=90 ducats @ <=2p
+
+    A listing like:
+        90 ducats @ 1p
+
+    matches BOTH rules.
+
+    We avoid duplicate/incorrect attribution by preferring
+    the stricter (lower price) tier.
+
+    So if a cheaper rule already captures the listing,
+    we skip the broader rule.
+    """
+
+    return platinum < rule.price_val and ducats >= rule.ducats_val
 
 
 def is_order_valid(order: Dict[str, Any]) -> bool:
     if order['type'] != 'sell':
         return False
 
-    conditions = []
     item = current_app.wf_items[order['itemId']]
-
     ducats = item.get('ducats')  # some items don't have ducats
     platinum = order['platinum']
 
-    if ducats:
-        wildcard_items = _get_item_wildcards()
-        for wildcard_item in wildcard_items:
-            conditions.append(f'{ducats} {wildcard_item.ducats} and {platinum} {wildcard_item.price}')
-
     specific_item = _get_item_by_name(item['i18n']['en']['name'])
     if specific_item:
-        condition = f'{platinum} {specific_item.price}'
-        if specific_item.ducats:
-            condition += f' and {ducats} {specific_item.ducats}'
-        conditions.append(condition)
+        # we only care about platinum for comparison
+        if evaluate_condition(platinum, specific_item.price_op, specific_item.price_val):
+            return True
 
-    # this is prone to RCE injection, I know
-    # maybe rework later, but for now since the project is not exposed to the internet, it's fine
-    return any(eval(condition) for condition in conditions)
+    if ducats is None:
+        return False
+
+    wildcard_rules = _get_item_wildcards()
+    wildcard_rules.sort(key=lambda r: r.ducats_val, reverse=True)
+
+    for rule in wildcard_rules:
+        if not _matches_wildcard_rule(rule, ducats, platinum):
+            continue
+
+        if _is_probable_user_error(rule, ducats, platinum):
+            continue
+
+        if _is_shadowed_by_lower_tier(rule, ducats, platinum):
+            continue
+
+        return True
+
+    return False
 
 
 # todo: rework this function
@@ -88,9 +170,9 @@ async def background_task(broker):
 
                 # message = {"type":"@WS/SUBSCRIBE/MOST_RECENT"}  # v1
                 message = {
-                    "route": "@wfm|cmd/subscribe/newOrders",
-                    "payload": {"platform": "pc", "crossplay": True},
-                    "id": "3qKjOKfExUM",
+                    'route': '@wfm|cmd/subscribe/newOrders',
+                    'payload': {'platform': 'pc', 'crossplay': True},
+                    'id': '3qKjOKfExUM',
                 }
                 await ws.send(json.dumps(message))
 
